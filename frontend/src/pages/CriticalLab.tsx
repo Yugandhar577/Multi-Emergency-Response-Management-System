@@ -46,9 +46,9 @@ export function CriticalLab() {
 
   return (
     <PageWrapper
-      eyebrow="Unit II · Critical Structures"
+      eyebrow="Algorithm proof layer / Critical structures"
       title="Tarjan's Algorithm: Bridges & Articulation Points"
-      byline="Identify the critical roads and neighborhoods whose failure isolates parts of the network."
+      byline="Explain how the resilience planner finds roads and neighborhoods whose failure can split the network."
     >
       <div className="space-y-8">
         {/* Problem Section */}
@@ -89,7 +89,7 @@ export function CriticalLab() {
                 </div>
               </div>
               <div className="text-xs text-ink/60 mt-3">
-                Computed in {result.elapsed_us} µs
+                Computed in {result.elapsed_us} us
               </div>
             </div>
           )}
@@ -100,7 +100,7 @@ export function CriticalLab() {
               <div className="space-y-2 text-xs">
                 {result.bridges.slice(0, 5).map((bridge: any, i: number) => (
                   <div key={i} className="flex gap-3">
-                    <span className="text-brass">✓</span>
+                    <span className="text-brass">OK</span>
                     <span className="text-ink/70">
                       {areas.find((a: any) => a.id === bridge.u)?.name || `Area ${bridge.u}`} ↔{' '}
                       {areas.find((a: any) => a.id === bridge.v)?.name || `Area ${bridge.v}`} (weight:{' '}

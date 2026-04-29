@@ -1,19 +1,31 @@
-# Multi-Emergency Response Management System
+# Multi-Emergency Response Decision-Support System
 
-City-scale emergency dispatch showcase for AADSA. The project combines a C++17 algorithm/API backend with a React 18 frontend to demonstrate routing, assignment, and resilience analysis on a 60-area Pune graph.
+An AADSA course project that demonstrates how graph algorithms and optimization methods can support emergency response decisions. The system is presented as a command-center workflow first, with an algorithm laboratory that explains the data structures and algorithms behind each visible decision.
+
+## Demo Story
+
+The project should be demoed as one connected flow:
+
+1. **Dashboard** - view the current operational picture.
+2. **Report Incident** - create a citizen incident report.
+3. **Dispatch Teams** - compare Greedy, Hungarian, and Min-Cost Max-Flow assignment strategies.
+4. **Active Incidents** - track the incident lifecycle from pending to handled.
+5. **Resilience Analysis** - find weak roads and areas using MST, bridges, articulation points, and edge-closure simulation.
+6. **Algorithm Lab** - explain why each algorithm exists and discuss complexity.
+
+This framing makes the project a decision-support system, not a loose collection of algorithm demos.
 
 ## What Is Included
 
-- 10 algorithms: Dijkstra, A*, Bellman-Ford, Floyd-Warshall, Kruskal MST, Tarjan bridges/articulation points, edge-removal connectivity, greedy dispatch, Hungarian matching, and min-cost max-flow.
-- 5 frontend views: Algorithm Lab, Dispatcher, City Resilience, Citizen Reporter, and Analytics.
-- SQLite persistence seeded with areas, roads, response teams, and demo incidents.
-- Offline-friendly vendored backend dependencies: SQLite and nlohmann/json.
+- C++17 backend with REST endpoints and SQLite persistence.
+- React 18 frontend with an operations console and algorithm laboratory.
+- 60-node Pune-inspired road graph with real neighborhood names and fabricated teaching weights.
+- Algorithms: Dijkstra, A*, Bellman-Ford, Floyd-Warshall, Kruskal MST, Tarjan bridges/articulation points, connectivity analysis, Greedy dispatch, Hungarian matching, and Min-Cost Max-Flow.
+- Documentation for viva explanation and reproducible local demo.
 
-## Verified Run Commands
+## Run Commands
 
 ### Backend
-
-This repo includes a prebuilt working binary produced during verification:
 
 ```powershell
 .\build-manual\emergency_server.exe 8080 build-manual\emergency_demo.db
@@ -23,12 +35,6 @@ Smoke test:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8080/api/health
-```
-
-If you need to rebuild with the MinGW compiler installed at `C:\MinGW\bin`:
-
-```powershell
-g++ -std=c++17 -D_WIN32_WINNT=0x0601 -Icore/include -Ifrontend/third_party/json/single_include -Ifrontend/third_party/sqlite-amalgamation server/main.cpp core/src/graph.cpp core/src/dijkstra.cpp core/src/astar.cpp core/src/bellman_ford.cpp core/src/floyd_warshall.cpp core/src/kruskal_mst.cpp core/src/dsu.cpp core/src/tarjan.cpp core/src/hungarian.cpp core/src/mcmf.cpp core/src/dispatch.cpp core/src/database.cpp core/src/seed.cpp build-manual/sqlite3.o -lws2_32 -o build-manual/emergency_server.exe
 ```
 
 ### Frontend
@@ -51,12 +57,20 @@ cd frontend
 npm run build
 ```
 
-## Verification Completed
+## Architecture
 
-- `npm run build` passes.
-- Core algorithm self-test passes via `build-manual/test_algorithms.exe`.
-- Backend API responds on `http://127.0.0.1:8080`.
-- Playwright browser smoke test loaded all 5 pages and exercised route comparison, dispatch comparison, and incident reporting with no console errors or warnings.
+```text
+React frontend (operations + lab)
+        |
+        | REST JSON
+        v
+C++17 WinSock HTTP backend
+        |
+        +-- Core graph/optimization algorithms
+        +-- SQLite database seeded with areas, roads, teams, incidents
+```
+
+The backend stays deliberately compact for a course demo: one executable, one local SQLite database, and a clear REST contract.
 
 ## Main API Endpoints
 
@@ -64,14 +78,27 @@ npm run build
 - `GET /api/areas`
 - `GET /api/edges`
 - `GET /api/teams`
-- `GET /api/incidents?status=0`
+- `GET /api/incidents`
 - `POST /api/incidents`
+- `POST /api/incidents/{id}/status`
 - `POST /api/route/compare`
 - `GET /api/graph/mst`
 - `GET /api/graph/critical`
 - `POST /api/graph/connectivity`
 - `POST /api/dispatch/compare`
 
-## Notes
+## What To Say In Viva
 
-The current Windows backend uses a compact single-threaded WinSock HTTP adapter so it builds with the available MinGW toolchain, which lacks `std::thread`. The algorithm and persistence layers remain standard C++17, and the REST contract remains the same for the frontend.
+**Problem:** Emergency response teams need quick routing, fair assignment, and awareness of fragile infrastructure.
+
+**Algorithm families:** Shortest paths handle route planning, matching/flow handles team assignment, MST and Tarjan handle resilience, and heaps support efficient priority operations.
+
+**Architecture:** React presents the workflow, C++ runs the algorithms and API, SQLite stores graph and incident data.
+
+**Limitations:** The Pune graph is a teaching graph, not live traffic data. There is no authentication or real-time WebSocket layer. The goal is algorithmic depth and a working demo, not production deployment.
+
+## Verification
+
+- Frontend: `npm run build`
+- Core algorithms: `.\build-manual\test_algorithms.exe`
+- Backend smoke test: `GET /api/health`

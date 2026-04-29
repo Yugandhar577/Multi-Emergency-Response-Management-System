@@ -45,9 +45,9 @@ export function MstLab() {
 
   return (
     <PageWrapper
-      eyebrow="Unit II · Spanning Trees"
+      eyebrow="Algorithm proof layer / Spanning trees"
       title="Kruskal's Minimum Spanning Tree"
-      byline="Find the lowest-cost network backbone that connects all neighborhoods without cycles."
+      byline="Explain the minimum road backbone used by the resilience planner to reason about city connectivity."
     >
       <div className="space-y-8">
         {/* Problem Section */}
@@ -81,7 +81,7 @@ export function MstLab() {
                 Total Weight: {result.total_weight}
               </div>
               <div className="text-xs text-ink/60 mt-1">
-                {result.edges.length} edges · Computed in {result.elapsed_us} µs
+                {result.edges.length} edges / Computed in {result.elapsed_us} us
               </div>
             </div>
           )}
@@ -123,9 +123,9 @@ export function MstLab() {
               <strong>Path Compression:</strong> When you find an element's root, make every node on that path point directly to the root. Subsequent finds are O(1).
             </p>
             <div className="bg-paper border border-moss/40 p-3 font-mono text-xs mt-2">
-              Tree before: A→B→C→root
+              Tree before: A to B to C to root
               <br />
-              Tree after find(A): A→root, B→root, C→root
+              Tree after find(A): A to root, B to root, C to root
             </div>
           </div>
         </div>

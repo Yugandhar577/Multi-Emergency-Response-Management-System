@@ -118,9 +118,9 @@ export function Resilience() {
 
   return (
     <PageWrapper
-      eyebrow="Infrastructure · Resilience"
+      eyebrow="Infrastructure / Weak-point analysis"
       title="Resilience Analysis"
-      byline="Visualize the road network's critical infrastructure: minimum spanning tree, bridges, articulation points, and simulate edge failures."
+      byline="Find weak roads and areas in the Pune-inspired network using MST, bridges, articulation points, and edge-closure simulation."
     >
       <div className="space-y-6">
         {/* Stat Strip */}

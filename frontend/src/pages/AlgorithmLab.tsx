@@ -37,7 +37,7 @@ export function AlgorithmLab() {
 
   if (areasLoading || edgesLoading) {
     return (
-      <PageWrapper eyebrow="Issue 01 · Comparative Routing" title="The Algorithm Laboratory">
+      <PageWrapper eyebrow="Algorithm proof layer / Routing" title="Routing Algorithm Lab">
         <div className="flex items-center justify-center py-20">
           <Spinner size="lg" />
         </div>
@@ -78,9 +78,9 @@ export function AlgorithmLab() {
 
   return (
     <PageWrapper
-      eyebrow="Issue 01 · Comparative Routing"
-      title="The Algorithm Laboratory"
-      byline="Compare four major graph algorithms side-by-side to understand their performance characteristics and correctness on live emergency routing data."
+      eyebrow="Algorithm proof layer / Routing"
+      title="Routing Algorithm Lab"
+      byline="Compare the route planners used by the operations console and see why different graph algorithms matter under different road conditions."
     >
       <div className="space-y-8">
         {/* About This Experiment */}
@@ -88,7 +88,7 @@ export function AlgorithmLab() {
           <h3 className="display text-lg text-ink mb-4">About this experiment</h3>
           <div className="space-y-4 text-sm text-ink/70">
             <p>
-              <strong>Problem:</strong> Given a weighted graph of 60 Pune neighborhoods and 156 roads (edges), compute the shortest path between two areas. Compare four classical single-source shortest-path algorithms by latency, edge relaxations, and correctness.
+              <strong>Problem:</strong> Given a weighted graph of 60 Pune neighborhoods and 156 roads, compute the shortest path between two areas. This is the routing engine behind dispatch decisions.
             </p>
             <div>
               <strong className="block mb-2">When to use each:</strong>
@@ -206,7 +206,7 @@ export function AlgorithmLab() {
                         </div>
                         <div className="text-ink/60">
                           <div className="font-medium text-ink">{result.elapsed_us}</div>
-                          <div>µs</div>
+                          <div>us</div>
                         </div>
                       </div>
                       <Badge tone={result.feasible ? 'moss' : 'ruby'} className="w-full justify-center">
@@ -241,7 +241,7 @@ export function AlgorithmLab() {
                     <YAxis domain={[0, 'dataMax + 1']} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="elapsed_us" fill="#b88b3b" name="Elapsed (µs)" />
+                    <Bar dataKey="elapsed_us" fill="#b88b3b" name="Elapsed (us)" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -264,11 +264,11 @@ export function AlgorithmLab() {
               <div>A --2--&gt; C</div>
               <div>C --(-10)--&gt; B  (priority corridor with bonus)</div>
               <div className="mt-2 text-ink">
-                Dijkstra picks path A→C→B cost 2+(-10)=−8
+                Dijkstra picks path A to C to B cost 2 + (-10) = -8
                 <br />
-                But after exploring A→B cost 5, Dijkstra locks B's distance at 5.
+                But after exploring A to B cost 5, Dijkstra locks B's distance at 5.
                 <br />
-                Later, C→B negative weight cannot be relaxed (Dijkstra already visited B).
+                Later, C to B negative weight cannot be relaxed (Dijkstra already visited B).
               </div>
             </div>
             <p>
@@ -281,7 +281,7 @@ export function AlgorithmLab() {
         <div className="rise-6">
           <CodeExcerpt
             filename="core/src/dijkstra.cpp (excerpt)"
-            code={`// Dijkstra's algorithm with Fibonacci heap optimization
+            code={`// Dijkstra's algorithm with binary heap priority queue
 PathResult dijkstra(const Graph& g, int src, int dst, bool corridors) {
     int n = g.areas().size();
     std::vector<int> dist(n, INF);
@@ -319,7 +319,7 @@ PathResult dijkstra(const Graph& g, int src, int dst, bool corridors) {
             <li><strong>Total Weight:</strong> Sum of edge weights along the path (−1 if no path found).</li>
             <li><strong>Hops:</strong> Number of edges in the path.</li>
             <li><strong>Relaxations:</strong> How many times the algorithm updated a distance estimate. Proxy for work performed.</li>
-            <li><strong>Elapsed (µs):</strong> Wall-clock time in microseconds. Highly noisy on sub-millisecond workloads.</li>
+            <li><strong>Elapsed (us):</strong> Wall-clock time in microseconds. Highly noisy on sub-millisecond workloads.</li>
           </ul>
         </div>
 

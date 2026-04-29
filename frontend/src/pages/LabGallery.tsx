@@ -3,85 +3,47 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 
 const labSyllabus = [
   {
-    unit: 'Unit II — Graphs',
+    unit: 'Graph routing',
     algorithms: [
       {
-        name: 'Routing',
+        name: 'Routing Comparison',
         path: '/lab/routing',
         algorithms: ['Dijkstra', 'A*', 'Bellman-Ford', 'Floyd-Warshall'],
-        complexity: 'O((V+E)log V) to O(V³)',
-        motivation: 'Shortest path in weighted road networks with priority corridors',
+        complexity: 'O((V+E) log V) to O(V^3)',
+        motivation: 'Shows how the command center finds routes and why negative priority corridors need Bellman-Ford.',
       },
       {
         name: 'Spanning Trees',
         path: '/lab/mst',
-        algorithms: ['Kruskal MST'],
+        algorithms: ['Kruskal MST', 'DSU'],
         complexity: 'O(E log E)',
-        motivation: 'Minimum-cost backbone connecting all neighborhoods',
+        motivation: 'Explains the minimum road backbone used in resilience planning.',
       },
       {
         name: 'Critical Structures',
         path: '/lab/critical',
-        algorithms: ['Tarjan Bridges & APs'],
+        algorithms: ['Tarjan bridges', 'Articulation points'],
         complexity: 'O(V + E)',
-        motivation: 'Identify critical roads and areas whose failure isolates the network',
+        motivation: 'Identifies roads and areas whose failure can isolate neighborhoods.',
       },
     ],
   },
   {
-    unit: 'Unit III — Heaps',
-    algorithms: [
-      {
-        name: 'Priority Queue',
-        path: '/lab/heap',
-        algorithms: ['Binary Min-Heap'],
-        complexity: 'O(log n) per operation',
-        motivation: 'Efficiently process incidents by priority within algorithms like Dijkstra',
-      },
-    ],
-  },
-  {
-    unit: 'Unit V — Greedy & DP',
+    unit: 'Dispatch optimization',
     algorithms: [
       {
         name: 'Optimal Assignment',
         path: '/lab/assignment',
         algorithms: ['Greedy', 'Hungarian', 'Min-Cost Max-Flow'],
-        complexity: 'O(T·I) to O(N³)',
-        motivation: 'Assign teams to incidents minimizing total travel distance',
+        complexity: 'O(T*I) to O(N^3)',
+        motivation: 'Compares fast local assignment with globally optimal and capacity-aware dispatch.',
       },
-    ],
-  },
-  {
-    unit: 'Unit I — Trees',
-    algorithms: [
       {
-        name: 'AVL & Red-Black Trees',
-        locked: true,
-        complexity: 'O(log n)',
-        motivation: 'Self-balancing search structures',
-      },
-    ],
-  },
-  {
-    unit: 'Unit IV — Divide & Conquer',
-    algorithms: [
-      {
-        name: 'Sorting Comparison',
-        locked: true,
-        complexity: 'O(n log n)',
-        motivation: 'Quicksort vs Mergesort performance analysis',
-      },
-    ],
-  },
-  {
-    unit: 'Unit VI — Backtracking',
-    algorithms: [
-      {
-        name: 'Graph Problems',
-        locked: true,
-        complexity: 'Exponential worst-case',
-        motivation: 'Graph coloring and constraint satisfaction',
+        name: 'Priority Queue',
+        path: '/lab/heap',
+        algorithms: ['Binary Min-Heap'],
+        complexity: 'O(log n) per operation',
+        motivation: 'Shows the heap structure used by Dijkstra, A*, and high-priority incident processing.',
       },
     ],
   },
@@ -92,39 +54,29 @@ export function LabGallery() {
 
   return (
     <PageWrapper
-      eyebrow="Algorithm Laboratory"
-      title="Syllabus & Algorithms"
-      byline="Select an algorithm to inspect proofs, complexity analysis, and live visualization on the Pune emergency network."
+      eyebrow="Algorithm proof layer"
+      title="Algorithms Behind The Console"
+      byline="Use these labs after the operations demo to explain the choices, complexity, and trade-offs behind each visible system decision."
     >
       <div className="space-y-12">
         {labSyllabus.map((unit) => (
           <div key={unit.unit}>
             <h2 className="display text-2xl text-ink mb-6">{unit.unit}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {unit.algorithms.map((algo, i) => (
+              {unit.algorithms.map((algo) => (
                 <button
-                  key={i}
-                  onClick={() => (algo as any).path && navigate((algo as any).path)}
-                  disabled={(algo as any).locked}
-                  className={`border rounded-sm p-6 text-left transition-all ${
-                    (algo as any).locked
-                      ? 'border-mist bg-mist/20 opacity-60 cursor-not-allowed'
-                      : 'border-brass/40 bg-paper hover:border-brass hover:shadow-sm'
-                  }`}
+                  key={algo.path}
+                  onClick={() => navigate(algo.path)}
+                  className="border rounded-sm p-6 text-left transition-all border-brass/40 bg-paper hover:border-brass hover:shadow-sm"
                 >
                   <h3 className="display text-lg text-ink mb-1">{algo.name}</h3>
-                  {(algo as any).algorithms && (
-                    <div className="text-xs text-brass font-medium mb-3 space-x-2">
-                      {(algo as any).algorithms.map((a: string) => (
-                        <span key={a}>{a}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="text-xs text-brass font-medium mb-3 space-x-2">
+                    {algo.algorithms.map((a) => (
+                      <span key={a}>{a}</span>
+                    ))}
+                  </div>
                   <div className="font-mono text-xs text-ink/70 mb-2">{algo.complexity}</div>
                   <p className="text-sm text-ink/70">{algo.motivation}</p>
-                  {(algo as any).locked && (
-                    <div className="text-xs text-ink/50 mt-3 font-medium">Coming soon</div>
-                  )}
                 </button>
               ))}
             </div>

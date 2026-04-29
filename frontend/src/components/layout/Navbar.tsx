@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/lab',         eyebrow: '01', label: 'Algorithm Lab' },
-  { to: '/dispatch',    eyebrow: '02', label: 'Dispatcher' },
-  { to: '/resilience',  eyebrow: '03', label: 'City Resilience' },
-  { to: '/report',      eyebrow: '04', label: 'Citizen Reporter' },
-  { to: '/analytics',   eyebrow: '05', label: 'Analytics' },
+  { to: '/app/dashboard', eyebrow: '01', label: 'Operations' },
+  { to: '/app/report', eyebrow: '02', label: 'Report' },
+  { to: '/app/operations', eyebrow: '03', label: 'Dispatch' },
+  { to: '/app/planner', eyebrow: '04', label: 'Resilience' },
+  { to: '/lab', eyebrow: '05', label: 'Algorithm Lab' },
 ];
 
 export function Navbar() {
@@ -13,9 +13,9 @@ export function Navbar() {
     <header className="border-b border-ink/15 bg-paper/95 backdrop-blur sticky top-0 z-30">
       <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-end justify-between gap-6">
         <div>
-          <div className="eyebrow">Pune Operations Bureau · Vol. 26</div>
+          <div className="eyebrow">Pune Operations Bureau / Algorithm Proof Layer</div>
           <div className="display text-2xl md:text-3xl tracking-tightest text-ink leading-none">
-            The Emergency Response Console
+            Emergency Response Decision Support
           </div>
         </div>
         <nav className="hidden lg:flex items-stretch gap-0">

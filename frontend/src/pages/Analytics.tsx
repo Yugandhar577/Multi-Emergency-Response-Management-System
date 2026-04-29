@@ -69,7 +69,7 @@ export function Analytics() {
 
   if (!incidents.length || !teams.length) {
     return (
-      <PageWrapper eyebrow="Operations · Insights" title="Analytics Dashboard">
+      <PageWrapper eyebrow="Operations / Insights" title="Analytics Dashboard">
         <div className="flex items-center justify-center py-20">
           <Spinner size="lg" />
         </div>
@@ -79,9 +79,9 @@ export function Analytics() {
 
   return (
     <PageWrapper
-      eyebrow="Operations · Insights"
+      eyebrow="Operations / Insights"
       title="Analytics Dashboard"
-      byline="Real-time operational metrics and performance analysis across all incident types and response teams."
+      byline="Summarize incident volume, severity, area hotspots, and team utilization after the response workflow runs."
     >
       <div className="space-y-8">
         {/* Stat Strip */}

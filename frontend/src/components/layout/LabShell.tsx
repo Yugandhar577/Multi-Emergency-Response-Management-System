@@ -23,11 +23,10 @@ export function LabShell({ children, showLabNav = true }: LabShellProps) {
     <div className="min-h-screen flex flex-col bg-paper">
       <Navbar />
 
-      {/* Lab Navigation (if inside a lab page) */}
       {showLabNav && isLabAlgo && (
         <div className="border-b border-brass/40 bg-paper/50 px-6 py-3 sticky top-0 z-20">
           <div className="max-w-[1400px] mx-auto">
-            <div className="text-xs text-brass font-medium mb-2">ALGORITHM LABS</div>
+            <div className="text-xs text-brass font-medium mb-2">ALGORITHM PROOF LAYER</div>
             <div className="flex gap-3 flex-wrap">
               {labNavItems.map((item) => (
                 <NavLink
@@ -52,13 +51,12 @@ export function LabShell({ children, showLabNav = true }: LabShellProps) {
 
       <main className="flex-1">
         <div className="max-w-[1400px] mx-auto px-6 py-8 relative">
-          {/* Mode Switcher (top right) */}
           <div className="absolute top-8 right-6">
             <a
               href="/app/dashboard"
               className="text-xs text-brass hover:text-brass/80 transition-colors font-medium"
             >
-              Switch to Operations →
+              Back to Operations
             </a>
           </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { axios } from '../../lib/axios';
 import { LiveDot } from '../ui/LiveDot';
@@ -8,11 +8,18 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+const navItems = [
+  { path: '/app/dashboard', label: 'Dashboard', icon: '01' },
+  { path: '/app/report', label: 'Report', icon: '02' },
+  { path: '/app/operations', label: 'Dispatch', icon: '03' },
+  { path: '/app/active', label: 'Active', icon: '04' },
+  { path: '/app/planner', label: 'Resilience', icon: '05' },
+  { path: '/app/analytics', label: 'Analytics', icon: '06' },
+];
+
 export function AppShell({ children }: AppShellProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const location = useLocation();
 
-  // Live clock
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -20,7 +27,6 @@ export function AppShell({ children }: AppShellProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch critical incidents count
   const { data: incidents = [] } = useQuery({
     queryKey: ['incidents'],
     queryFn: async () => {
@@ -34,15 +40,6 @@ export function AppShell({ children }: AppShellProps) {
     (i: any) => i.status === 0 && i.severity >= 9
   ).length;
 
-  const navItems = [
-    { path: '/app/dashboard', label: 'Dashboard', icon: '⌗' },
-    { path: '/app/report', label: 'Report', icon: '✎' },
-    { path: '/app/operations', label: 'Operations', icon: '◆' },
-    { path: '/app/active', label: 'Active', icon: '☰' },
-    { path: '/app/analytics', label: 'Analytics', icon: '∿' },
-    { path: '/app/planner', label: 'Resilience', icon: '◇' },
-  ];
-
   const formatTime = (d: Date) =>
     d.toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -53,14 +50,13 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-paper">
-      {/* Top Status Bar */}
       <div className="bg-paper border-b border-ink/15 px-6 py-2 text-xs flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-moss/20 text-moss font-mono font-semibold">
             OPERATIONAL
           </div>
           <span className="text-ink/60 font-mono">{formatTime(currentTime)}</span>
-          <span className="text-ink/60">v1.0 · Pune Operations Bureau</span>
+          <span className="text-ink/60">v1.0 / Pune Operations Bureau</span>
         </div>
         <div>
           {criticalCount > 0 ? (
@@ -72,7 +68,6 @@ export function AppShell({ children }: AppShellProps) {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
         <aside className="w-60 border-r border-ink/15 bg-paper/50 overflow-y-auto hidden lg:flex flex-col">
           <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => (
@@ -89,24 +84,22 @@ export function AppShell({ children }: AppShellProps) {
                   ].join(' ')
                 }
               >
-                <span className="font-mono text-base w-4">{item.icon}</span>
+                <span className="font-mono text-[0.65rem] w-5 text-brass">{item.icon}</span>
                 <span>{item.label}</span>
               </NavLink>
             ))}
           </nav>
 
-          {/* Mode Switcher */}
           <div className="border-t border-ink/15 p-4">
             <a
               href="/lab"
               className="text-xs text-brass hover:text-brass/80 transition-colors font-medium flex items-center gap-1"
             >
-              Switch to Laboratory →
+              Open Algorithm Lab
             </a>
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-full">{children}</div>
         </main>

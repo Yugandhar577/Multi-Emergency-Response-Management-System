@@ -150,8 +150,11 @@ export function ActiveBoard() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <div className="eyebrow">Operations · Incident Lifecycle</div>
+        <div className="eyebrow">Operations / Incident lifecycle</div>
         <h1 className="display text-3xl text-ink mt-2">Active Incidents</h1>
+        <p className="text-sm text-ink/70 mt-2">
+          Track each report as it moves from pending to assigned, en-route, on-scene, and handled.
+        </p>
       </div>
 
       <div className="grid grid-cols-5 gap-4 h-[calc(100vh-200px)]">

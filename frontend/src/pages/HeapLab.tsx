@@ -54,7 +54,7 @@ export function HeapLab() {
   }, [heap.length]);
 
   const treeData = useMemo(() => {
-    const levels = Array.from({ length: heapDepth }, () => [] as number[]);
+    const levels = Array.from({ length: heapDepth }, () => [] as { value: number; index: number }[]);
     for (let i = 0; i < heap.length; i++) {
       const level = Math.floor(Math.log2(i + 1));
       levels[level].push({ value: heap[i], index: i });
@@ -64,9 +64,9 @@ export function HeapLab() {
 
   return (
     <PageWrapper
-      eyebrow="Unit III · Priority Queue"
+      eyebrow="Algorithm proof layer / Priority queue"
       title="Binary Min-Heap"
-      byline="Efficiently maintain the next-highest-priority incident for processing. Used internally by Dijkstra, A*, and MCMF."
+      byline="Explain the priority queue structure used by routing algorithms and high-priority incident processing."
     >
       <div className="space-y-8">
         {/* Problem Section */}

@@ -3,6 +3,14 @@ import { Button } from '../components/ui/Button';
 import { Pillar } from '../components/ui/Pillar';
 import { axios } from '../lib/axios';
 
+const demoFlow = [
+  ['01', 'Report', 'Citizen intake creates a pending incident.'],
+  ['02', 'Dispatch', 'Greedy, Hungarian, and flow strategies are compared.'],
+  ['03', 'Track', 'The active board follows the incident lifecycle.'],
+  ['04', 'Analyze', 'Resilience tools reveal fragile roads and areas.'],
+  ['05', 'Learn', 'The lab explains the algorithms and complexity.'],
+];
+
 export function Landing() {
   const { data: incidents = [] } = useQuery({
     queryKey: ['incidents'],
@@ -28,22 +36,21 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">
-      {/* Header */}
       <div className="border-b border-brass/40 bg-paper">
         <div className="max-w-[1400px] mx-auto px-6 py-6">
-          <div className="eyebrow">Pune Emergency Operations Bureau · Edition 26</div>
-          <div className="flex items-end justify-between mt-4">
+          <div className="eyebrow">Pune Emergency Operations Bureau / Demo Console</div>
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mt-4">
             <div>
               <h1 className="display text-5xl md:text-6xl text-ink leading-none">
-                Two systems.
+                Emergency response
                 <br />
-                One bureau.
+                decision support.
               </h1>
               <p className="text-sm text-ink/70 italic mt-4 max-w-xl">
-                An operational emergency-management console, paired with a laboratory of the algorithms that run inside it.
+                File incidents, compare dispatch strategies, track response work, and inspect the graph algorithms behind each decision.
               </p>
             </div>
-            <div className="text-right text-xs text-ink/60 font-mono hidden md:block">
+            <div className="text-left lg:text-right text-xs text-ink/60 font-mono hidden md:block">
               {today}
             </div>
           </div>
@@ -51,17 +58,22 @@ export function Landing() {
         <div className="h-px bg-brass/60" />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 max-w-[1400px] mx-auto px-6 py-12 w-full">
-        {/* Two Pillar Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-10">
+          {demoFlow.map(([step, title, body]) => (
+            <div key={step} className="border border-ink/10 bg-paper p-4 rounded-sm">
+              <div className="font-mono text-xs text-brass mb-2">{step}</div>
+              <div className="display text-lg text-ink">{title}</div>
+              <p className="text-xs text-ink/65 mt-2 leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* Operations Pillar */}
-          <Pillar
-            tone="ruby"
-            eyebrow="Operational · Live System"
-            title="Operations Center"
-          >
-            <div>File incidents, dispatch teams, monitor active response, analyze historical performance, and plan infrastructure resilience.</div>
+          <Pillar tone="ruby" eyebrow="Primary demo path" title="Operations Center">
+            <div>
+              Start here for the viva. This is the working command-center flow: incident intake, optimized dispatch, response tracking, analytics, and resilience planning.
+            </div>
             <div className="grid grid-cols-2 gap-3 text-xs mt-4 pt-4 border-t border-ink/10">
               <div>
                 <div className="font-mono font-semibold text-lg text-ink">{activeCount}</div>
@@ -87,18 +99,15 @@ export function Landing() {
                 onClick={() => (window.location.href = '/app/dashboard')}
                 className="w-full justify-center"
               >
-                Enter Operations →
+                Enter Operations
               </Button>
             </div>
           </Pillar>
 
-          {/* Laboratory Pillar */}
-          <Pillar
-            tone="moss"
-            eyebrow="Pedagogical · 10+ Algorithms"
-            title="Algorithm Laboratory"
-          >
-            <div>Inspect every algorithm running inside the bureau — routing, spanning trees, critical-infrastructure detection, optimal team assignment, priority queues. With proofs, complexity bounds, and live visualization on real city data.</div>
+          <Pillar tone="moss" eyebrow="Academic proof layer" title="Algorithm Laboratory">
+            <div>
+              Use this after the operations demo to explain why each algorithm exists: routing, spanning trees, critical-road detection, optimal assignment, and priority queues on a Pune-inspired graph.
+            </div>
             <div className="grid grid-cols-2 gap-3 text-xs mt-4 pt-4 border-t border-ink/10">
               <div>
                 <div className="font-mono font-semibold text-lg text-ink">60</div>
@@ -124,24 +133,22 @@ export function Landing() {
                 onClick={() => (window.location.href = '/lab')}
                 className="w-full justify-center"
               >
-                Enter Laboratory →
+                Open Algorithm Lab
               </Button>
             </div>
           </Pillar>
         </div>
 
-        {/* System Stats Footer */}
         <div className="border-t border-brass/40 pt-8">
           <div className="text-xs text-ink/60 font-mono text-center">
-            Pune Emergency Response v1.0 · System Operational · Last updated: {new Date().toLocaleTimeString()}
+            Pune Emergency Response v1.0 / System operational / Last updated: {new Date().toLocaleTimeString()}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
       <div className="border-t border-ink/15 bg-paper/50 px-6 py-4 text-center text-xs text-ink/60">
         <div className="h-px bg-brass/60 mb-4" />
-        Editorial design. Algorithms. Responsibility.
+        Operations first. Algorithms explained. Built for AADSA viva.
       </div>
     </div>
   );

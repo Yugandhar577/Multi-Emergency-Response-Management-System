@@ -1,4 +1,4 @@
-# ── Python ──────────────────────────────────────────────────────────────────
+# Python
 venv/
 .venv/
 env/
@@ -20,7 +20,7 @@ build/
 coverage.xml
 htmlcov/
 
-# ── Node / Frontend ──────────────────────────────────────────────────────────
+# Node / Frontend
 node_modules/
 dist/
 .pnp
@@ -28,17 +28,16 @@ dist/
 src/frontend/dist/
 src/frontend/.vite/
 
-# ── Environment & Secrets ────────────────────────────────────────────────────
+# Environment and secrets
 .env
 .env.*
 !.env.example
 
-# ── Docker ───────────────────────────────────────────────────────────────────
-# (keep docker-compose.yml but ignore local override files)
+# Docker
 docker-compose.override.yml
 .docker/
 
-# ── OS / Editor ──────────────────────────────────────────────────────────────
+# OS / Editor
 .DS_Store
 Thumbs.db
 .idea/
@@ -46,9 +45,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# ── Logs ─────────────────────────────────────────────────────────────────────
+# Logs
 *.log
 logs/
 
-# ── TypeScript build artifacts ────────────────────────────────────────────────
+# TypeScript build artifacts
 *.tsbuildinfo

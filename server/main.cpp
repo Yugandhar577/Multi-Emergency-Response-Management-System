@@ -121,6 +121,38 @@ static json plan_to_json(const AssignmentPlan& p) {
     return out;
 }
 
+static void commit_assignment_plan(AppState& app, const AssignmentPlan& plan, const std::vector<Team>& teams) {
+    std::map<int, Team> team_by_id;
+    std::map<int, int> assigned_count_by_team;
+    for (const auto& t : teams) {
+        team_by_id[t.id] = t;
+    }
+
+    for (const auto& pr : plan.pairs) {
+        std::string assigned_team = "Team #" + std::to_string(pr.team_id);
+        auto team_it = team_by_id.find(pr.team_id);
+        if (team_it != team_by_id.end() && !team_it->second.name.empty()) {
+            assigned_team = team_it->second.name;
+        }
+
+        app.db.update_incident_status(
+            pr.incident_id,
+            IncidentStatus::Assigned,
+            assigned_team,
+            pr.cost
+        );
+        assigned_count_by_team[pr.team_id]++;
+    }
+
+    for (const auto& kv : assigned_count_by_team) {
+        auto team_it = team_by_id.find(kv.first);
+        if (team_it == team_by_id.end()) continue;
+        int remaining = team_it->second.available_units - kv.second;
+        if (remaining < 0) remaining = 0;
+        app.db.update_team_availability(kv.first, remaining);
+    }
+}
+
 static std::map<std::string, std::string> parse_query(const std::string& qs) {
     std::map<std::string, std::string> out;
     std::stringstream ss(qs);
@@ -346,7 +378,10 @@ static HttpResponse route_request(const HttpRequest& req, AppState& app) {
             else if (strat == "hungarian") plan = algo::hungarian(cm, teams, pending);
             else if (strat == "mcmf") plan = algo::min_cost_max_flow(cm, teams, pending);
             else return json_response({{"error", "unknown dispatch strategy"}}, 404);
-            return json_response(plan_to_json(plan));
+            commit_assignment_plan(app, plan, teams);
+            json out = plan_to_json(plan);
+            out["committed"] = true;
+            return json_response(out);
         }
 
         if (req.method == "POST" && req.path == "/api/admin/reset") {

@@ -31,9 +31,9 @@ export function AssignmentLab() {
 
   return (
     <PageWrapper
-      eyebrow="Unit V · Optimal Assignment"
+      eyebrow="Algorithm proof layer / Assignment"
       title="The Hungarian Algorithm & Network Flow"
-      byline="Assign rescue teams to incidents minimizing total travel distance under capacity constraints."
+      byline="Explain why the dispatch screen compares fast greedy assignment with optimal matching and capacity-aware flow."
     >
       <div className="space-y-8">
         {/* Problem Section */}
@@ -87,7 +87,7 @@ export function AssignmentLab() {
                     <div className="eyebrow mb-2">{strategyNames[i]}</div>
                     <div className="display text-2xl text-ink mb-4">{strategy.total_cost}</div>
                     <div className="space-y-2 text-xs text-ink/60 mb-4">
-                      <div>Elapsed: {strategy.elapsed_us} µs</div>
+                      <div>Elapsed: {strategy.elapsed_us} us</div>
                       <div>Pairs: {strategy.pairs.length}</div>
                     </div>
                     {isWinner && (
@@ -152,10 +152,10 @@ export function AssignmentLab() {
           </p>
           <ul className="text-sm text-ink/70 space-y-2">
             <li>
-              <strong>Greedy:</strong> Picks T1→A (cost 5). Then assigns T2→B (cost 100). Total: 105.
+              <strong>Greedy:</strong> Picks T1 to A (cost 5). Then assigns T2 to B (cost 100). Total: 105.
             </li>
             <li>
-              <strong>Hungarian:</strong> Recognizes the global optimum: T2→A (cost 5) + T1→B (cost 2). Total: 7.
+              <strong>Hungarian:</strong> Recognizes the global optimum: T2 to A (cost 5) + T1 to B (cost 2). Total: 7.
             </li>
           </ul>
         </div>

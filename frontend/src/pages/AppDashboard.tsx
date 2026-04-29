@@ -40,7 +40,7 @@ export function AppDashboard() {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="eyebrow">Operations · Today</div>
+        <div className="eyebrow">Operations / Current picture</div>
         <div className="flex items-end justify-between mt-2">
           <h1 className="display text-3xl text-ink">Command Center</h1>
           <div className="text-xs text-ink/60 font-mono">Last updated: {new Date().toLocaleTimeString()}</div>
@@ -105,9 +105,9 @@ export function AppDashboard() {
       {/* Action Tiles */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'File New Incident', path: '/app/report', icon: '✎' },
-          { label: 'Open Operations', path: '/app/operations', icon: '◆' },
-          { label: 'View Resilience Planner', path: '/app/planner', icon: '◇' },
+          { label: 'File New Incident', path: '/app/report', icon: '01' },
+          { label: 'Compare Dispatch', path: '/app/operations', icon: '02' },
+          { label: 'Analyze Resilience', path: '/app/planner', icon: '03' },
         ].map((action, i) => (
           <button
             key={i}

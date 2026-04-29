@@ -10,6 +10,7 @@ export interface DispatchPlan {
   total_cost: number;
   elapsed_us: number;
   pairs: DispatchPair[];
+  committed?: boolean;
 }
 
 export interface CompareDispatchResponse {

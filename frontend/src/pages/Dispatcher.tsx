@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { MapCanvas } from '@/components/MapCanvas';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -14,6 +15,7 @@ import { SEVERITY_BAND, CATEGORY_LABEL } from '@/lib/constants';
 import type { DispatchPlan } from '@/features/dispatch/types';
 
 export function Dispatcher() {
+  const queryClient = useQueryClient();
   const { data: areas = [] } = useAreas();
   const { data: edges = [] } = useEdges();
   const { data: incidents = [] } = useIncidents(0, 3000); // Pending, refetch every 3s
@@ -25,6 +27,15 @@ export function Dispatcher() {
   const [currentPlan, setCurrentPlan] = useState<DispatchPlan | null>(null);
   const [comparePlans, setComparePlans] = useState<DispatchPlan[] | null>(null);
 
+  const dispatchStrategyKey = (strategy: string) =>
+    strategy === 'min_cost_max_flow' ? 'mcmf' : strategy;
+
+  const refreshOperationalData = () => {
+    queryClient.invalidateQueries({ queryKey: ['incidents'] });
+    queryClient.invalidateQueries({ queryKey: ['incidents', 0] });
+    queryClient.invalidateQueries({ queryKey: ['teams'] });
+  };
+
   const handleDispatch = (strategy: string) => {
     runDispatchMutation.mutate(
       { strategy, req: { priority_corridors: false } },
@@ -32,6 +43,7 @@ export function Dispatcher() {
         onSuccess: (data) => {
           setCurrentPlan(data);
           setComparePlans(null);
+          refreshOperationalData();
         },
       }
     );
@@ -86,9 +98,9 @@ export function Dispatcher() {
 
   return (
     <PageWrapper
-      eyebrow="Emergency Operations · Assignment"
+      eyebrow="Operations / Dispatch comparison"
       title="Dispatcher"
-      byline="Allocate teams to pending incidents using three different strategies and compare their efficiency."
+      byline="Compare greedy, optimal matching, and capacity-aware flow before choosing how teams should respond to pending incidents."
     >
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] gap-6 items-start">
         {/* Left: Incidents Queue */}
@@ -140,7 +152,7 @@ export function Dispatcher() {
               className="w-full"
               disabled={runDispatchMutation.isPending}
             >
-              Greedy Nearest
+              Dispatch: Greedy
             </Button>
             <Button
               onClick={() => handleDispatch('hungarian')}
@@ -149,7 +161,7 @@ export function Dispatcher() {
               className="w-full"
               disabled={runDispatchMutation.isPending}
             >
-              Optimal (Hungarian)
+              Dispatch: Hungarian
             </Button>
             <Button
               onClick={() => handleDispatch('mcmf')}
@@ -158,7 +170,7 @@ export function Dispatcher() {
               className="w-full"
               disabled={runDispatchMutation.isPending}
             >
-              Capacity-aware (MCMF)
+              Dispatch: MCMF
             </Button>
           </div>
 
@@ -171,12 +183,17 @@ export function Dispatcher() {
                   <div className="numeral text-3xl text-ink mt-1">{currentPlan.total_cost}</div>
                 </div>
                 <div className="text-xs text-ink/60">
-                  Elapsed: {currentPlan.elapsed_us} µs
+                  Elapsed: {currentPlan.elapsed_us} us
                 </div>
+                {currentPlan.committed && (
+                  <Badge tone="moss" className="w-full justify-center">
+                    Incidents moved to Assigned
+                  </Badge>
+                )}
                 <div className="space-y-1 max-h-[200px] overflow-y-auto">
                   {currentPlan.pairs.map((pair, idx) => (
                     <div key={idx} className="text-xs p-2 bg-parchment rounded">
-                      <div>Inc #{pair.incident_id} → Team #{pair.team_id}</div>
+                      <div>Inc #{pair.incident_id} to Team #{pair.team_id}</div>
                       <div className="text-ink/60">Cost: {pair.cost}</div>
                     </div>
                   ))}
@@ -192,7 +209,7 @@ export function Dispatcher() {
             className="w-full"
             disabled={compareDispatchMutation.isPending}
           >
-            Compare All Three
+            Preview All Three
           </Button>
         </div>
       </div>
@@ -201,6 +218,9 @@ export function Dispatcher() {
       {comparePlans && (
         <div className="rise-4 mt-8 space-y-4">
           <h3 className="eyebrow">Strategy Comparison</h3>
+          <p className="text-sm text-ink/65">
+            Preview only. Choose a strategy below to commit assignments and move incidents out of Pending.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {comparePlans.map((plan) => {
               const isLowest = comparePlans.every((p) => p.total_cost >= plan.total_cost);
@@ -215,6 +235,15 @@ export function Dispatcher() {
                       </div>
                     </div>
                     {isLowest && <Badge tone="moss" className="w-full justify-center">Winner</Badge>}
+                    <Button
+                      onClick={() => handleDispatch(dispatchStrategyKey(plan.strategy))}
+                      variant={isLowest ? 'moss' : 'outline'}
+                      size="sm"
+                      className="w-full"
+                      disabled={runDispatchMutation.isPending}
+                    >
+                      {isLowest ? 'Dispatch Winner' : 'Dispatch This'}
+                    </Button>
                   </div>
                 </Card>
               );

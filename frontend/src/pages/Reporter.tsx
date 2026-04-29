@@ -13,16 +13,16 @@ const CATEGORIES = [
 ];
 
 const SEVERITY_DESCRIPTIONS: Record<number, string> = {
-  1: 'Routine — non-life-threatening, can wait for response',
-  2: 'Routine — non-life-threatening, can wait for response',
-  3: 'Routine — non-life-threatening, can wait for response',
-  4: 'Routine — non-life-threatening, can wait for response',
-  5: 'Elevated — needs attention within the hour',
-  6: 'Elevated — needs attention within the hour',
-  7: 'Severe — significant risk to people or property',
-  8: 'Severe — significant risk to people or property',
-  9: 'Critical — immediate threat to life or safety',
-  10: 'Critical — immediate threat to life or safety',
+  1: 'Routine - non-life-threatening, can wait for response',
+  2: 'Routine - non-life-threatening, can wait for response',
+  3: 'Routine - non-life-threatening, can wait for response',
+  4: 'Routine - non-life-threatening, can wait for response',
+  5: 'Elevated - needs attention within the hour',
+  6: 'Elevated - needs attention within the hour',
+  7: 'Severe - significant risk to people or property',
+  8: 'Severe - significant risk to people or property',
+  9: 'Critical - immediate threat to life or safety',
+  10: 'Critical - immediate threat to life or safety',
 };
 
 export function Reporter() {
@@ -87,13 +87,13 @@ export function Reporter() {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
         <div className="border-4 border-moss/40 rounded-sm p-12 bg-moss/5">
-          <div className="display text-5xl text-moss mb-4">✓</div>
+          <div className="display text-5xl text-moss mb-4">OK</div>
           <h2 className="display text-3xl text-ink mb-2">Incident #{successId} Filed</h2>
           <p className="text-sm text-ink/70 mb-6">
             Filed at {filedTime} in <strong>{areaName}</strong>
           </p>
           <p className="text-sm text-ink/60 mb-8">
-            Dispatch typically responds within 8–15 minutes
+            Dispatch typically responds within 8-15 minutes
           </p>
           <div className="flex gap-4 justify-center">
             <Button
@@ -133,8 +133,9 @@ export function Reporter() {
       {/* Step 0: Where */}
       {step === 0 && (
         <div className="rise-1">
+          <div className="eyebrow mb-2">Citizen intake / Step 1</div>
           <h2 className="display text-3xl text-ink mb-2">Where is the incident?</h2>
-          <p className="text-sm text-ink/70 mb-6">Select the area or neighborhood</p>
+          <p className="text-sm text-ink/70 mb-6">Create the report that starts the dispatch flow.</p>
           <select
             value={areaId}
             onChange={(e) => setAreaId(Number(e.target.value))}
@@ -149,7 +150,7 @@ export function Reporter() {
           <div className="flex gap-4 justify-between">
             <div />
             <Button variant="primary" size="lg" onClick={() => setStep(1)}>
-              Next: What happened →
+              Next: What happened
             </Button>
           </div>
         </div>
@@ -177,10 +178,10 @@ export function Reporter() {
           </div>
           <div className="flex gap-4 justify-between">
             <Button variant="ghost" size="lg" onClick={() => setStep(0)}>
-              ← Back
+              Back
             </Button>
             <Button variant="primary" size="lg" onClick={() => setStep(2)}>
-              Next: How urgent →
+              Next: How urgent
             </Button>
           </div>
         </div>
@@ -210,10 +211,10 @@ export function Reporter() {
           </div>
           <div className="flex gap-4 justify-between">
             <Button variant="ghost" size="lg" onClick={() => setStep(1)}>
-              ← Back
+              Back
             </Button>
             <Button variant="primary" size="lg" onClick={() => setStep(3)}>
-              Next: Describe →
+              Next: Describe
             </Button>
           </div>
         </div>
@@ -248,7 +249,7 @@ export function Reporter() {
           </div>
           <div className="flex gap-4 justify-between">
             <Button variant="ghost" size="lg" onClick={() => setStep(2)}>
-              ← Back
+              Back
             </Button>
             <Button
               variant="ruby"
