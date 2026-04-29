@@ -21,7 +21,7 @@ export interface OverlayPath {
   paths: number[]; // array of area IDs
   color: string;
   width: number;
-  dashed?: boolean;
+  dashed?: string; // dashArray string like "8,4" or "1 0" (solid)
 }
 
 export interface MapMarker {
@@ -91,6 +91,9 @@ export function MapCanvas({
           }
           if (coords.length === 0) return null;
 
+          // Stagger opacity so overlapping identical paths are distinguishable
+          const opacities = [0.9, 0.7, 0.5, 0.3];
+
           return (
             <Polyline
               key={`overlay-${idx}`}
@@ -98,8 +101,8 @@ export function MapCanvas({
               pathOptions={{
                 color: overlay.color,
                 weight: overlay.width,
-                dashArray: overlay.dashed ? '5,5' : undefined,
-                opacity: 0.75,
+                dashArray: overlay.dashed && overlay.dashed !== '1 0' ? overlay.dashed : undefined,
+                opacity: opacities[idx % opacities.length],
               }}
             />
           );
@@ -111,7 +114,8 @@ export function MapCanvas({
           const v = areaMap.get(edge.v);
           if (!u || !v) return null;
 
-          const lineColor = edge.priority ? '#b88b3b' : '#d9d0c4';
+          // Use darker, more visible colors for non-priority edges
+          const lineColor = edge.priority ? '#b88b3b' : '#6b5e4f';
           const coords: [number, number][] = [[u.lat, u.lng], [v.lat, v.lng]];
 
           return (
@@ -120,8 +124,8 @@ export function MapCanvas({
               positions={coords}
               pathOptions={{
                 color: lineColor,
-                weight: edge.priority ? 2.5 : 1.5,
-                opacity: edge.priority ? 0.7 : 0.4,
+                weight: edge.priority ? 2.5 : 2,
+                opacity: edge.priority ? 0.8 : 0.6,
               }}
               eventHandlers={{
                 click: () => onEdgeClick?.(edge.id),

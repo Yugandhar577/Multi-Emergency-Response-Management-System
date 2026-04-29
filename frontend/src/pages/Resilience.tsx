@@ -164,7 +164,7 @@ export function Resilience() {
                     type="checkbox"
                     checked={showMST}
                     onChange={(e) => handleToggleMST(e.target.checked)}
-                    disabled={mstQuery.isPending}
+                    disabled={mstQuery.isFetching}
                   />
                   <span>Show MST</span>
                 </label>
@@ -173,7 +173,7 @@ export function Resilience() {
                     type="checkbox"
                     checked={showCritical}
                     onChange={(e) => handleToggleCritical(e.target.checked)}
-                    disabled={criticalQuery.isPending}
+                    disabled={criticalQuery.isFetching}
                   />
                   <span>Show Bridges</span>
                 </label>

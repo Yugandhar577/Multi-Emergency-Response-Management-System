@@ -44,11 +44,17 @@ export function AlgorithmLab() {
   }
 
   const overlays = results
-    ? results.map((r) => ({
-        paths: r.path,
-        color: ALGO_META[r.algorithm as keyof typeof ALGO_META]?.color || '#171009',
-        width: 3,
-      }))
+    ? results.map((r, idx) => {
+        // Stagger widths and dashes so identical paths are visually distinct
+        const widths = [5, 4, 3.5, 3];
+        const dashArrays = ['1 0', '8 4', '2 6', '12 6'];
+        return {
+          paths: r.path,
+          color: ALGO_META[r.algorithm as keyof typeof ALGO_META]?.color || '#171009',
+          width: widths[idx % widths.length],
+          dashed: dashArrays[idx % dashArrays.length],
+        };
+      })
     : [];
 
   const sourceArea = areas.find((a) => a.id === sourceId);
@@ -191,16 +197,23 @@ export function AlgorithmLab() {
           <div className="rise-4">
             <Card>
               <CardHeader title="Execution Latency Comparison" />
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3,3" stroke="rgb(217 208 196)" />
-                  <XAxis dataKey="algorithm" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="elapsed_us" fill="#b88b3b" name="Elapsed (µs)" />
-                </BarChart>
-              </ResponsiveContainer>
+              {chartData.every(d => d.elapsed_us === 0) ? (
+                <div className="py-12 text-center text-sm text-ink/60">
+                  <p className="font-medium mb-2">All algorithms completed sub-microsecond</p>
+                  <p>Latencies were too fast to measure reliably. See relaxation counts in result cards above.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3,3" stroke="rgb(217 208 196)" />
+                    <XAxis dataKey="algorithm" />
+                    <YAxis domain={[0, 'dataMax + 1']} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="elapsed_us" fill="#b88b3b" name="Elapsed (µs)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </Card>
           </div>
         )}
