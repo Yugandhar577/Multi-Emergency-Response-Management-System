@@ -295,6 +295,13 @@ void Database::update_incident_status(int id, IncidentStatus status, const std::
     if (sqlite3_step(up.get()) != SQLITE_DONE) throw std::runtime_error(sqlite3_errmsg(db_));
 }
 
+void Database::update_incident_status_only(int id, IncidentStatus status) {
+    Stmt up(db_, "UPDATE incidents SET status=? WHERE id=?;");
+    sqlite3_bind_int(up.get(), 1, static_cast<int>(status));
+    sqlite3_bind_int(up.get(), 2, id);
+    if (sqlite3_step(up.get()) != SQLITE_DONE) throw std::runtime_error(sqlite3_errmsg(db_));
+}
+
 void Database::mark_incident_handled(int id, long long resolved_at) {
     Stmt up(db_, "UPDATE incidents SET status=?, resolved_at=? WHERE id=?;");
     sqlite3_bind_int(up.get(), 1, static_cast<int>(IncidentStatus::Handled));

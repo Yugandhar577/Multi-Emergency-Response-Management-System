@@ -18,7 +18,11 @@ export const STATUS_LABEL: Record<number, string> = {
   0: 'Pending',
   1: 'Assigned',
   2: 'Handled',
+  3: 'En-route',
+  4: 'On-scene',
 };
+
+export const STATUS_LIFECYCLE_ORDER = [0, 1, 3, 4, 2] as const;
 
 export const ALGO_META = {
   dijkstra:        { label: 'Dijkstra',        complexity: 'O((V + E) log V)', color: '#8f3528' },

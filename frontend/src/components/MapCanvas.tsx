@@ -32,8 +32,8 @@ export interface MapMarker {
 }
 
 interface MapCanvasProps {
-  areas: Area[];
-  edges: Edge[];
+  areas?: Area[];
+  edges?: Edge[];
   overlays?: OverlayPath[];
   markers?: MapMarker[];
   onEdgeClick?: (edgeId: number) => void;
@@ -60,8 +60,8 @@ function createSvgMarker(color: string, size: string = 'md'): L.Icon {
 }
 
 export function MapCanvas({
-  areas,
-  edges,
+  areas = [],
+  edges = [],
   overlays = [],
   markers = [],
   onEdgeClick,

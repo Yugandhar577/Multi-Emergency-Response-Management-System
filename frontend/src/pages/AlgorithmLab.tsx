@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { PageWrapper } from '@/components/layout/PageWrapper';
-import { MapCanvas } from '@/components/MapCanvas';
-import { Card, CardHeader } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Spinner, ErrorState } from '@/components/ui/Spinner';
-import { useAreas, useEdges } from '@/features/graph/hooks';
-import { useCompareRoutes } from '@/features/algorithms/hooks';
-import { ALGO_META } from '@/lib/constants';
+import { PageWrapper } from '../components/layout/PageWrapper';
+import { MapCanvas } from '../components/MapCanvas';
+import { Card, CardHeader } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Spinner, ErrorState } from '../components/ui/Spinner';
+import { CodeExcerpt } from '../components/ui/CodeExcerpt';
+import { ComplexityCard } from '../components/ui/ComplexityCard';
+import { useAreas, useEdges } from '../features/graph/hooks';
+import { useCompareRoutes } from '../features/algorithms/hooks';
+import { ALGO_META } from '../lib/constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { PathResult } from '@/features/algorithms/types';
+import type { PathResult } from '../features/algorithms/types';
 
 export function AlgorithmLab() {
   const { data: areas = [], isLoading: areasLoading } = useAreas();
@@ -81,6 +83,35 @@ export function AlgorithmLab() {
       byline="Compare four major graph algorithms side-by-side to understand their performance characteristics and correctness on live emergency routing data."
     >
       <div className="space-y-8">
+        {/* About This Experiment */}
+        <div className="rise-1 border border-brass/40 bg-brass/5 rounded p-6">
+          <h3 className="display text-lg text-ink mb-4">About this experiment</h3>
+          <div className="space-y-4 text-sm text-ink/70">
+            <p>
+              <strong>Problem:</strong> Given a weighted graph of 60 Pune neighborhoods and 156 roads (edges), compute the shortest path between two areas. Compare four classical single-source shortest-path algorithms by latency, edge relaxations, and correctness.
+            </p>
+            <div>
+              <strong className="block mb-2">When to use each:</strong>
+              <ul className="space-y-1 ml-4">
+                <li>• <strong>Dijkstra:</strong> Non-negative weights, single-source shortest path to all. O((V+E) log V) with binary heap.</li>
+                <li>• <strong>A*:</strong> Dijkstra + heuristic. Faster when you know the target. Requires admissible heuristic.</li>
+                <li>• <strong>Bellman-Ford:</strong> Handles negative weights. O(V·E). Detects negative cycles.</li>
+                <li>• <strong>Floyd-Warshall:</strong> All-pairs shortest paths. O(V³) precompute, O(1) query. Detects negative cycles.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Complexity Table */}
+        <div className="rise-2">
+          <ComplexityCard
+            best="O((V+E) log V)"
+            average="O((V+E) log V)"
+            worst="O(V²) dense graph"
+            space="O(V)"
+          />
+        </div>
+
         {/* Control Strip */}
         <div className="rise-1 bg-parchment border border-mist p-6 rounded">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -217,6 +248,80 @@ export function AlgorithmLab() {
             </Card>
           </div>
         )}
+
+        {/* Why Negative Weights Break Dijkstra */}
+        <details className="rise-5 border border-brass/40 rounded p-6 bg-brass/5">
+          <summary className="cursor-pointer font-medium text-ink text-sm">
+            Why priority corridors break Dijkstra
+          </summary>
+          <div className="mt-4 space-y-4 text-sm text-ink/70">
+            <p>
+              Dijkstra requires non-negative edge weights. Our priority corridors offer negative bonuses, which can create violations.
+            </p>
+            <div className="bg-paper border border-brass/40 p-4 rounded text-xs font-mono">
+              <div>Example: Three areas A, B, C</div>
+              <div className="mt-2">A --5--&gt; B</div>
+              <div>A --2--&gt; C</div>
+              <div>C --(-10)--&gt; B  (priority corridor with bonus)</div>
+              <div className="mt-2 text-ink">
+                Dijkstra picks path A→C→B cost 2+(-10)=−8
+                <br />
+                But after exploring A→B cost 5, Dijkstra locks B's distance at 5.
+                <br />
+                Later, C→B negative weight cannot be relaxed (Dijkstra already visited B).
+              </div>
+            </div>
+            <p>
+              Toggle "Priority Corridors" to see Bellman-Ford and Floyd-Warshall handle negative weights correctly while Dijkstra fails.
+            </p>
+          </div>
+        </details>
+
+        {/* Code Reference */}
+        <div className="rise-6">
+          <CodeExcerpt
+            filename="core/src/dijkstra.cpp (excerpt)"
+            code={`// Dijkstra's algorithm with Fibonacci heap optimization
+PathResult dijkstra(const Graph& g, int src, int dst, bool corridors) {
+    int n = g.areas().size();
+    std::vector<int> dist(n, INF);
+    std::priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+
+    dist[src] = 0;
+    pq.push({0, src});
+
+    int relaxations = 0;
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;  // Already processed
+
+        for (int idx : g.adj(u)) {
+            Edge e = g.edges()[idx];
+            int v = (e.u == u) ? e.v : e.u;
+            int w = e.weight + (corridors && e.priority_corridor ? e.bonus : 0);
+
+            if (dist[u] + w < dist[v]) {
+                relaxations++;
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    return {dist[dst], /*hops*/, path, elapsed, dist[dst] < INF, relaxations};
+}`}
+          />
+        </div>
+
+        {/* Reading the Metrics */}
+        <div className="rise-7 border-l-4 border-brass p-6 bg-paper">
+          <h4 className="font-medium text-ink mb-2">Reading the metrics</h4>
+          <ul className="text-sm text-ink/70 space-y-2">
+            <li><strong>Total Weight:</strong> Sum of edge weights along the path (−1 if no path found).</li>
+            <li><strong>Hops:</strong> Number of edges in the path.</li>
+            <li><strong>Relaxations:</strong> How many times the algorithm updated a distance estimate. Proxy for work performed.</li>
+            <li><strong>Elapsed (µs):</strong> Wall-clock time in microseconds. Highly noisy on sub-millisecond workloads.</li>
+          </ul>
+        </div>
 
         {compareRoutesMutation.isError && (
           <ErrorState

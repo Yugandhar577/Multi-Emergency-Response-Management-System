@@ -1,12 +1,8 @@
-import { useState } from 'react';
-import { PageWrapper } from '@/components/layout/PageWrapper';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner, ErrorState } from '@/components/ui/Spinner';
-import { useAreas } from '@/features/graph/hooks';
-import { useCreateIncident } from '@/features/incidents/hooks';
-import { SEVERITY_BAND, CATEGORY_LABEL } from '@/lib/constants';
+import { useState, useMemo } from 'react';
+import { Button } from '../components/ui/Button';
+import { useAreas } from '../features/graph/hooks';
+import { useCreateIncident } from '../features/incidents/hooks';
+import { SEVERITY_BAND, CATEGORY_LABEL } from '../lib/constants';
 
 const CATEGORIES = [
   { id: 0, label: 'Medical' },
@@ -16,11 +12,25 @@ const CATEGORIES = [
   { id: 4, label: 'Hazmat' },
 ];
 
+const SEVERITY_DESCRIPTIONS: Record<number, string> = {
+  1: 'Routine — non-life-threatening, can wait for response',
+  2: 'Routine — non-life-threatening, can wait for response',
+  3: 'Routine — non-life-threatening, can wait for response',
+  4: 'Routine — non-life-threatening, can wait for response',
+  5: 'Elevated — needs attention within the hour',
+  6: 'Elevated — needs attention within the hour',
+  7: 'Severe — significant risk to people or property',
+  8: 'Severe — significant risk to people or property',
+  9: 'Critical — immediate threat to life or safety',
+  10: 'Critical — immediate threat to life or safety',
+};
+
 export function Reporter() {
   const { data: areas = [] } = useAreas();
   const createIncidentMutation = useCreateIncident();
 
-  const [areaId, setAreaId] = useState<number>(0);
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [areaId, setAreaId] = useState<number>(areas[0]?.id || 0);
   const [category, setCategory] = useState<number>(0);
   const [severity, setSeverity] = useState<number>(5);
   const [reporter, setReporter] = useState<string>('');
@@ -28,9 +38,12 @@ export function Reporter() {
   const [successId, setSuccessId] = useState<number | null>(null);
 
   const sevBand = SEVERITY_BAND(severity);
+  const areaName = useMemo(
+    () => areas.find((a) => a.id === areaId)?.name || 'Unknown Area',
+    [areaId, areas]
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     createIncidentMutation.mutate(
       {
         area_id: areaId,
@@ -42,65 +55,90 @@ export function Reporter() {
       {
         onSuccess: (data) => {
           setSuccessId(data.id);
-          // Reset form
-          setAreaId(areas[0]?.id || 0);
-          setCategory(0);
-          setSeverity(5);
-          setReporter('');
-          setDescription('');
         },
       }
     );
   };
 
-  if (successId !== null) {
-    const areaName = areas.find((a) => a.id === areaId)?.name || 'Unknown Area';
-    return (
-      <PageWrapper eyebrow="Public Services · Incident Reporting" title="File Incident Report">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-moss/5 border border-moss p-8 rounded text-center space-y-4">
-            <div className="numeral text-5xl text-moss">✓</div>
-            <h2 className="display text-2xl text-ink">Filed as Incident #{successId}</h2>
-            <p className="text-ink/70">in {areaName}</p>
-            <Button
-              onClick={() => setSuccessId(null)}
-              variant="moss"
-              size="lg"
-              className="mt-4"
-            >
-              File Another
-            </Button>
-          </div>
-        </div>
-      </PageWrapper>
-    );
-  }
+  const handleReset = () => {
+    setStep(0);
+    setAreaId(areas[0]?.id || 0);
+    setCategory(0);
+    setSeverity(5);
+    setReporter('');
+    setDescription('');
+    setSuccessId(null);
+  };
 
   if (!areas.length) {
     return (
-      <PageWrapper eyebrow="Public Services · Incident Reporting" title="File Incident Report">
-        <div className="flex items-center justify-center py-20">
-          <Spinner size="lg" />
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center text-ink/60">Loading areas...</div>
+      </div>
+    );
+  }
+
+  if (successId !== null) {
+    const filedTime = new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    return (
+      <div className="max-w-2xl mx-auto py-12 text-center">
+        <div className="border-4 border-moss/40 rounded-sm p-12 bg-moss/5">
+          <div className="display text-5xl text-moss mb-4">✓</div>
+          <h2 className="display text-3xl text-ink mb-2">Incident #{successId} Filed</h2>
+          <p className="text-sm text-ink/70 mb-6">
+            Filed at {filedTime} in <strong>{areaName}</strong>
+          </p>
+          <p className="text-sm text-ink/60 mb-8">
+            Dispatch typically responds within 8–15 minutes
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button
+              variant="moss"
+              size="lg"
+              onClick={() => (window.location.href = `/app/active?focus=${successId}`)}
+            >
+              Track this incident
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={handleReset}
+            >
+              File another
+            </Button>
+          </div>
         </div>
-      </PageWrapper>
+      </div>
     );
   }
 
   return (
-    <PageWrapper
-      eyebrow="Public Services · Incident Reporting"
-      title="File Incident Report"
-      byline="Submit an incident to the emergency response system. All fields are reviewed by trained operators."
-    >
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-        {/* Area */}
+    <div className="max-w-2xl mx-auto py-8">
+      {/* Progress Bar */}
+      <div className="flex gap-2 mb-12">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={`flex-1 h-1 transition-colors ${
+              i <= step ? 'bg-ruby' : 'bg-mist'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Step 0: Where */}
+      {step === 0 && (
         <div className="rise-1">
-          <label className="eyebrow block mb-2">Incident Area</label>
+          <h2 className="display text-3xl text-ink mb-2">Where is the incident?</h2>
+          <p className="text-sm text-ink/70 mb-6">Select the area or neighborhood</p>
           <select
             value={areaId}
             onChange={(e) => setAreaId(Number(e.target.value))}
-            className="w-full border border-mist px-4 py-3 text-base bg-paper text-ink rounded"
-            required
+            className="w-full border border-mist px-4 py-3 text-base bg-paper text-ink rounded-sm mb-8"
           >
             {areas.map((a) => (
               <option key={a.id} value={a.id}>
@@ -108,93 +146,124 @@ export function Reporter() {
               </option>
             ))}
           </select>
+          <div className="flex gap-4 justify-between">
+            <div />
+            <Button variant="primary" size="lg" onClick={() => setStep(1)}>
+              Next: What happened →
+            </Button>
+          </div>
         </div>
+      )}
 
-        {/* Category */}
-        <div className="rise-2">
-          <label className="eyebrow block mb-3">Category</label>
-          <div className="flex flex-wrap gap-2">
+      {/* Step 1: What */}
+      {step === 1 && (
+        <div className="rise-1">
+          <h2 className="display text-3xl text-ink mb-2">What type of incident?</h2>
+          <p className="text-sm text-ink/70 mb-6">Select the primary category</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
-                type="button"
                 onClick={() => setCategory(cat.id)}
-                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                className={`border-2 rounded-sm p-4 text-center transition-all ${
                   category === cat.id
-                    ? 'bg-ink text-paper'
-                    : 'bg-mist text-ink hover:bg-mist/80'
+                    ? 'border-ruby bg-ruby/10 text-ink'
+                    : 'border-ink/10 text-ink/70 hover:border-ink/30'
                 }`}
               >
-                {cat.label}
+                <div className="font-medium text-sm">{cat.label}</div>
               </button>
             ))}
           </div>
+          <div className="flex gap-4 justify-between">
+            <Button variant="ghost" size="lg" onClick={() => setStep(0)}>
+              ← Back
+            </Button>
+            <Button variant="primary" size="lg" onClick={() => setStep(2)}>
+              Next: How urgent →
+            </Button>
+          </div>
         </div>
+      )}
 
-        {/* Severity */}
-        <div className="rise-3">
-          <label className="eyebrow block mb-2">Severity: {severity}</label>
+      {/* Step 2: How urgent */}
+      {step === 2 && (
+        <div className="rise-1">
+          <h2 className="display text-3xl text-ink mb-2">How urgent?</h2>
+          <p className="text-sm text-ink/70 mb-6">Rate the severity on a scale of 1–10</p>
           <input
             type="range"
             min="1"
             max="10"
             value={severity}
             onChange={(e) => setSeverity(Number(e.target.value))}
-            className="w-full"
+            className="w-full mb-6"
           />
-          <div className="flex items-center gap-2 mt-2">
-            <Badge tone={
-              sevBand.label === 'critical' ? 'ruby' :
-              sevBand.label === 'severe' ? 'ruby' :
-              sevBand.label === 'elevated' ? 'brass' : 'moss'
-            }>
+          <div className="flex items-center justify-between mb-6">
+            <span className="font-mono text-2xl font-semibold text-ink">{severity}/10</span>
+            <span className={`px-3 py-1 rounded-sm font-medium text-sm ${sevBand.cls}`}>
               {sevBand.label}
-            </Badge>
-            <span className="text-xs text-ink/60">{severity}/10</span>
+            </span>
+          </div>
+          <div className="border border-brass/30 bg-brass/5 rounded-sm p-4 mb-8">
+            <p className="text-sm text-ink">{SEVERITY_DESCRIPTIONS[severity]}</p>
+          </div>
+          <div className="flex gap-4 justify-between">
+            <Button variant="ghost" size="lg" onClick={() => setStep(1)}>
+              ← Back
+            </Button>
+            <Button variant="primary" size="lg" onClick={() => setStep(3)}>
+              Next: Describe →
+            </Button>
           </div>
         </div>
+      )}
 
-        {/* Reporter */}
-        <div className="rise-4">
-          <label className="eyebrow block mb-2">Your Name (optional)</label>
-          <input
-            type="text"
-            value={reporter}
-            onChange={(e) => setReporter(e.target.value)}
-            placeholder="Anonymous"
-            className="w-full border border-mist px-4 py-3 text-base bg-paper text-ink rounded"
-          />
+      {/* Step 3: Describe */}
+      {step === 3 && (
+        <div className="rise-1">
+          <h2 className="display text-3xl text-ink mb-2">Describe the incident</h2>
+          <p className="text-sm text-ink/70 mb-6">Provide additional details for responders</p>
+          <div className="space-y-4 mb-8">
+            <div>
+              <label className="block text-sm font-medium text-ink mb-2">Your name (optional)</label>
+              <input
+                type="text"
+                value={reporter}
+                onChange={(e) => setReporter(e.target.value)}
+                placeholder="Leave blank to remain anonymous"
+                className="w-full border border-mist px-4 py-2 text-sm bg-paper text-ink rounded-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ink mb-2">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={5}
+                placeholder="Describe what you see, any injuries, hazards, etc."
+                className="w-full border border-mist px-4 py-2 text-sm bg-paper text-ink rounded-sm font-body"
+              />
+            </div>
+          </div>
+          <div className="flex gap-4 justify-between">
+            <Button variant="ghost" size="lg" onClick={() => setStep(2)}>
+              ← Back
+            </Button>
+            <Button
+              variant="ruby"
+              size="lg"
+              onClick={handleSubmit}
+              disabled={createIncidentMutation.isPending}
+            >
+              {createIncidentMutation.isPending ? 'Filing...' : 'Submit Report'}
+            </Button>
+          </div>
+          {createIncidentMutation.isError && (
+            <div className="text-red-600 text-sm mt-4">Failed to file incident. Please try again.</div>
+          )}
         </div>
-
-        {/* Description */}
-        <div className="rise-5">
-          <label className="eyebrow block mb-2">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={5}
-            placeholder="Describe the incident in detail..."
-            className="w-full border border-mist px-4 py-3 text-base bg-paper text-ink rounded font-body"
-          />
-        </div>
-
-        {/* Submit */}
-        <div className="rise-6 flex justify-center">
-          <Button
-            type="submit"
-            variant="ruby"
-            size="lg"
-            disabled={createIncidentMutation.isPending}
-            className="px-8"
-          >
-            {createIncidentMutation.isPending ? 'Filing...' : 'File Incident Report'}
-          </Button>
-        </div>
-
-        {createIncidentMutation.isError && (
-          <ErrorState message="Failed to file incident report" />
-        )}
-      </form>
-    </PageWrapper>
+      )}
+    </div>
   );
 }

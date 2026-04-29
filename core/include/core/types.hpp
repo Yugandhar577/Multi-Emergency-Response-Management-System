@@ -28,7 +28,9 @@ struct Edge {
 enum class IncidentStatus : int {
     Pending = 0,
     Assigned = 1,
-    Handled = 2
+    Handled = 2,
+    EnRoute = 3,
+    OnScene = 4
 };
 
 enum class IncidentCategory : int {

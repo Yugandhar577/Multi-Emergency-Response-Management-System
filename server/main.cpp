@@ -236,6 +236,26 @@ static HttpResponse route_request(const HttpRequest& req, AppState& app) {
             return json_response({{"id", id}, {"status", "handled"}});
         }
 
+        const std::string status_suffix = "/status";
+        if (req.method == "POST" && req.path.find(handle_prefix) == 0 &&
+            req.path.size() > handle_prefix.size() + status_suffix.size() &&
+            req.path.rfind(status_suffix) == req.path.size() - status_suffix.size()) {
+            std::string id_text = req.path.substr(handle_prefix.size(),
+                req.path.size() - handle_prefix.size() - status_suffix.size());
+            int id = std::stoi(id_text);
+            try {
+                auto j = json::parse(req.body.empty() ? "{}" : req.body);
+                int status = j.value("status", -1);
+                if (status < 0 || status > 4) {
+                    return json_response({{"error", "invalid status (must be 0-4)"}}, 400);
+                }
+                app.db.update_incident_status_only(id, static_cast<IncidentStatus>(status));
+                return json_response({{"id", id}, {"status", status}});
+            } catch (const std::exception& e) {
+                return json_response({{"error", std::string("parse error: ") + e.what()}}, 400);
+            }
+        }
+
         if (req.method == "POST" && req.path.find("/api/route/") == 0) {
             std::string which = req.path.substr(std::string("/api/route/").size());
             int src = -1, dst = -1;

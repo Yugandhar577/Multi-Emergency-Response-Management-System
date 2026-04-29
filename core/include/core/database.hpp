@@ -31,6 +31,7 @@ public:
     // Writes
     int  insert_incident(const Incident& e);
     void update_incident_status(int id, IncidentStatus status, const std::string& assigned_team, int eta_units);
+    void update_incident_status_only(int id, IncidentStatus status);
     void mark_incident_handled(int id, long long resolved_at);
     void update_team_availability(int team_id, int available_units);
     void increment_team_handled(int team_id, double response_time_units);
