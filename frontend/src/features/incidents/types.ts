@@ -3,7 +3,7 @@ export interface Incident {
   area_id: number;
   category: number; // 0=Medical, 1=Fire, 2=Police, 3=Disaster, 4=Hazmat
   severity: number; // 1..10
-  status: number; // 0=Pending, 1=Assigned, 2=Handled
+  status: number; // 0=Pending, 1=Assigned, 2=Handled, 3=En-route, 4=On-scene
   assigned_team: string;
   reporter: string;
   description: string;

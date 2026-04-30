@@ -4,12 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { StatusPill } from '../components/ui/StatusPill';
 import { SeverityBar } from '../components/ui/SeverityBar';
-import { MapCanvas } from '../components/MapCanvas';
+import { MapCanvas, type AreaDetail } from '../components/MapCanvas';
+import { useAreas, useEdges } from '../features/graph/hooks';
 import { axios } from '../lib/axios';
-import { CATEGORY_LABEL } from '../lib/constants';
+import { CATEGORY_LABEL, STATUS_LABEL, SEVERITY_NODE_COLOR, NODE_NORMAL_COLOR } from '../lib/constants';
 
 export function AppDashboard() {
   const navigate = useNavigate();
+
+  const { data: areas = [] } = useAreas();
+  const { data: edges = [] } = useEdges();
 
   const { data: incidents = [] } = useQuery({
     queryKey: ['incidents'],
@@ -33,6 +37,30 @@ export function AppDashboard() {
     ).toFixed(1);
     return { active, pending, handled, avgResponse };
   }, [incidents]);
+
+  const activeIncidents = useMemo(
+    () => incidents.filter((i: any) => i.status !== 2),
+    [incidents]
+  );
+
+  const areaDetails: AreaDetail[] = useMemo(() => {
+    if (!areas.length) return [];
+    return areas.map((a) => {
+      const incidentsHere = activeIncidents.filter((i: any) => i.area_id === a.id);
+      if (incidentsHere.length === 0) return { areaId: a.id };
+      const maxSeverity = incidentsHere.reduce((max: number, i: any) => Math.max(max, i.severity), -1);
+      return {
+        areaId: a.id,
+        alertColor: maxSeverity >= 0 ? SEVERITY_NODE_COLOR(maxSeverity) : undefined,
+        incidents: incidentsHere.map((i: any) => ({
+          id: i.id,
+          category: CATEGORY_LABEL[i.category] || 'Unknown',
+          severity: i.severity,
+          status: STATUS_LABEL[i.status] ?? 'Active',
+        })),
+      };
+    });
+  }, [areas, activeIncidents]);
 
   const recentIncidents = incidents.slice(0, 12);
 
@@ -98,7 +126,13 @@ export function AppDashboard() {
         {/* Map Preview - 40% */}
         <div className="border border-ink/10 rounded-sm p-4 h-80">
           <h2 className="font-medium text-sm text-ink mb-3">Area Overview</h2>
-          <MapCanvas height={320} />
+          <MapCanvas
+            areas={areas}
+            edges={edges}
+            areaDetails={areaDetails}
+            baseZoneColor={NODE_NORMAL_COLOR}
+            height={320}
+          />
         </div>
       </div>
 

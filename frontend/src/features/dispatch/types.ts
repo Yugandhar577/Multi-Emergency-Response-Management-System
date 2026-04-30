@@ -20,3 +20,19 @@ export interface CompareDispatchResponse {
 export interface RunDispatchRequest {
   priority_corridors: boolean;
 }
+
+export interface ManualAssignRequest {
+  team_id: number;
+  algorithm: string; // dijkstra | astar | bellman_ford | floyd_warshall
+  priority_corridors?: boolean;
+}
+
+export interface ManualAssignResponse {
+  incident_id: number;
+  team_id: number;
+  algorithm: string;
+  cost: number;
+  path: number[];
+  elapsed_us: number;
+  committed: boolean;
+}

@@ -353,6 +353,69 @@ static HttpResponse route_request(const HttpRequest& req, AppState& app) {
                                   {"elapsed_us", rep.elapsed_us}});
         }
 
+        // Manual single-incident assignment: POST /api/incidents/{id}/assign
+        // Body: { team_id: int, algorithm: "dijkstra"|"astar"|"bellman_ford"|"floyd_warshall",
+        //         priority_corridors: bool }
+        const std::string assign_suffix = "/assign";
+        if (req.method == "POST" && req.path.find(handle_prefix) == 0 &&
+            req.path.size() > handle_prefix.size() + assign_suffix.size() &&
+            req.path.rfind(assign_suffix) == req.path.size() - assign_suffix.size()) {
+            std::string id_text = req.path.substr(handle_prefix.size(),
+                req.path.size() - handle_prefix.size() - assign_suffix.size());
+            int incident_id = std::stoi(id_text);
+
+            json j;
+            try { j = json::parse(req.body.empty() ? "{}" : req.body); }
+            catch (const std::exception& e) {
+                return json_response({{"error", std::string("bad json: ") + e.what()}}, 400);
+            }
+            int team_id = j.value("team_id", -1);
+            std::string algo_name = j.value("algorithm", std::string("dijkstra"));
+            bool prio = j.value("priority_corridors", false);
+            if (team_id < 0) return json_response({{"error", "missing team_id"}}, 400);
+
+            // Look up incident + team
+            auto incidents = app.db.load_incidents();
+            const Incident* target = nullptr;
+            for (const auto& inc : incidents) { if (inc.id == incident_id) { target = &inc; break; } }
+            if (!target) return json_response({{"error", "incident not found"}}, 404);
+
+            auto teams = app.db.load_teams();
+            const Team* chosen_team = nullptr;
+            for (const auto& t : teams) { if (t.id == team_id) { chosen_team = &t; break; } }
+            if (!chosen_team) return json_response({{"error", "team not found"}}, 404);
+
+            int src = chosen_team->home_area_id;
+            int dst = target->area_id;
+            PathResult r;
+            if (algo_name == "dijkstra") r = algo::dijkstra(app.graph, src, dst, prio);
+            else if (algo_name == "astar") r = algo::astar(app.graph, src, dst, prio);
+            else if (algo_name == "bellman_ford") r = algo::bellman_ford(app.graph, src, dst, prio);
+            else if (algo_name == "floyd_warshall") r = algo::fw_query(app.get_fw(prio), src, dst);
+            else return json_response({{"error", "unknown algorithm"}}, 400);
+
+            if (!r.feasible) return json_response({{"error", "no path"}}, 400);
+
+            std::string team_label = chosen_team->name.empty()
+                ? std::string("Team #") + std::to_string(team_id)
+                : chosen_team->name;
+            app.db.update_incident_status(incident_id, IncidentStatus::Assigned, team_label, r.total_weight);
+
+            int remaining = chosen_team->available_units - 1;
+            if (remaining < 0) remaining = 0;
+            app.db.update_team_availability(team_id, remaining);
+
+            json out;
+            out["incident_id"] = incident_id;
+            out["team_id"] = team_id;
+            out["algorithm"] = algo_name;
+            out["cost"] = r.total_weight;
+            out["path"] = r.path;
+            out["elapsed_us"] = r.elapsed_us;
+            out["committed"] = true;
+            return json_response(out);
+        }
+
         if (req.method == "POST" && req.path.find("/api/dispatch/") == 0) {
             std::string strat = req.path.substr(std::string("/api/dispatch/").size());
             bool prio = false;

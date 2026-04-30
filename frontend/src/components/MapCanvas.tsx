@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Popup, Circle, Marker, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Tooltip, Popup, Circle, Marker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 
 export interface Area {
@@ -31,13 +31,35 @@ export interface MapMarker {
   size?: 'sm' | 'md' | 'lg';
 }
 
+export interface AreaDetail {
+  areaId: number;
+  incidents?: { id: number; category: string; severity: number; status: string }[];
+  teams?: { id: number; name: string; specialty: string; available: number }[];
+  isArticulation?: boolean;
+  bridgeCount?: number;
+  notes?: string[];
+  alertColor?: string;
+}
+
+export interface MovingMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  color: string;
+  label?: string;
+}
+
 interface MapCanvasProps {
   areas?: Area[];
   edges?: Edge[];
   overlays?: OverlayPath[];
   markers?: MapMarker[];
+  movingMarkers?: MovingMarker[];
   onEdgeClick?: (edgeId: number) => void;
+  onAreaClick?: (areaId: number) => void;
+  areaDetails?: AreaDetail[];
   height?: number;
+  baseZoneColor?: string;
 }
 
 function createSvgMarker(color: string, size: string = 'md'): L.Icon {
@@ -64,11 +86,16 @@ export function MapCanvas({
   edges = [],
   overlays = [],
   markers = [],
+  movingMarkers = [],
   onEdgeClick,
+  onAreaClick,
+  areaDetails = [],
   height = 480,
+  baseZoneColor,
 }: MapCanvasProps) {
-  // Create a map of area id to coordinates for drawing paths
   const areaMap = new Map(areas.map((a) => [a.id, { lat: a.lat, lng: a.lng }]));
+  const detailMap = new Map(areaDetails.map((d) => [d.areaId, d]));
+  const fallbackZoneColor = baseZoneColor ?? 'rgba(217, 208, 196, 0.5)';
 
   return (
     <div style={{ height: `${height}px` }} className="rounded border border-mist">
@@ -143,20 +170,86 @@ export function MapCanvas({
         {/* Area zone indicators */}
         {areas.map((area) => {
           const marker = markers.find((m) => m.areaId === area.id);
-          if (marker && !marker.label) return null; // Only show if explicitly listed with label
+          const detail = detailMap.get(area.id);
+          const alertColor = detail?.alertColor;
+          if (marker && !marker.label && !alertColor) return null;
+          const isHighlighted = !!alertColor || !!marker;
+          const zoneColor = alertColor ?? marker?.color ?? fallbackZoneColor;
+          const hasDetail = !!detail && (
+            (detail.incidents && detail.incidents.length > 0) ||
+            (detail.teams && detail.teams.length > 0) ||
+            detail.isArticulation ||
+            (detail.bridgeCount && detail.bridgeCount > 0) ||
+            (detail.notes && detail.notes.length > 0)
+          );
 
           return (
             <Circle
               key={`zone-${area.id}`}
               center={[area.lat, area.lng]}
-              radius={marker ? 800 : 400}
+              radius={isHighlighted ? 800 : 400}
               pathOptions={{
-                color: marker ? marker.color : 'rgba(217, 208, 196, 0.5)',
+                color: zoneColor,
                 weight: 2,
                 opacity: 0.4,
-                fillOpacity: marker ? 0.3 : 0.1,
+                fillOpacity: isHighlighted ? 0.3 : 0.1,
+              }}
+              eventHandlers={{
+                click: () => onAreaClick?.(area.id),
               }}
             >
+              <Tooltip direction="top" offset={[0, -4]} opacity={0.95} sticky>
+                <div style={{ minWidth: '180px', fontSize: '12px', lineHeight: 1.45 }}>
+                  <div style={{ fontWeight: 600, color: '#171009', marginBottom: 4 }}>
+                    {area.name} <span style={{ color: '#7a6d5b', fontWeight: 400 }}>· #{area.id}</span>
+                  </div>
+
+                  {detail?.isArticulation && (
+                    <div style={{ color: '#8f3528', fontWeight: 600, marginBottom: 2 }}>
+                      ⚠ Articulation point — removing this junction would split the network
+                    </div>
+                  )}
+                  {detail && detail.bridgeCount !== undefined && detail.bridgeCount > 0 && (
+                    <div style={{ color: '#8f3528', marginBottom: 2 }}>
+                      {detail.bridgeCount} bridge{detail.bridgeCount === 1 ? '' : 's'} touch this area
+                    </div>
+                  )}
+
+                  {detail?.teams && detail.teams.length > 0 && (
+                    <div style={{ marginTop: 4 }}>
+                      <div style={{ color: '#35544d', fontWeight: 600 }}>Stationed teams</div>
+                      {detail.teams.map((t) => (
+                        <div key={t.id} style={{ color: '#3d3424' }}>
+                          · {t.name} ({t.specialty}) — {t.available} avail
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {detail?.incidents && detail.incidents.length > 0 && (
+                    <div style={{ marginTop: 4 }}>
+                      <div style={{ color: '#8f3528', fontWeight: 600 }}>Active incidents</div>
+                      {detail.incidents.map((i) => (
+                        <div key={i.id} style={{ color: '#3d3424' }}>
+                          · #{i.id} {i.category} · sev {i.severity} · {i.status}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {detail?.notes && detail.notes.length > 0 && (
+                    <div style={{ marginTop: 4, color: '#3d3424' }}>
+                      {detail.notes.map((n, i) => <div key={i}>· {n}</div>)}
+                    </div>
+                  )}
+
+                  {!hasDetail && (
+                    <div style={{ color: '#7a6d5b', fontStyle: 'italic' }}>
+                      No teams, incidents, or structural notes for this area.
+                    </div>
+                  )}
+                </div>
+              </Tooltip>
               <Popup>
                 {area.name} (ID: {area.id})
               </Popup>
@@ -180,6 +273,19 @@ export function MapCanvas({
             </Marker>
           );
         })}
+
+        {/* Moving markers (en-route teams) — interpolated lat/lng from caller */}
+        {movingMarkers.map((m) => (
+          <Marker
+            key={`moving-${m.id}`}
+            position={[m.lat, m.lng]}
+            icon={createSvgMarker(m.color, 'md')}
+          >
+            <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
+              {m.label ?? 'En route'}
+            </Tooltip>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );

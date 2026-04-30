@@ -6,6 +6,14 @@ export const SEVERITY_BAND = (sev: number): { label: string; cls: string } => {
   return { label: 'routine', cls: 'bg-moss/85 text-paper' };
 };
 
+export const NODE_NORMAL_COLOR = '#35544d';
+
+export const SEVERITY_NODE_COLOR = (sev: number): string => {
+  if (sev >= 7) return '#8f3528';
+  if (sev >= 5) return '#b88b3b';
+  return NODE_NORMAL_COLOR;
+};
+
 export const CATEGORY_LABEL: Record<number, string> = {
   0: 'Medical',
   1: 'Fire',

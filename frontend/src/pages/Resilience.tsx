@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
-import { MapCanvas, type MapMarker, type OverlayPath } from '@/components/MapCanvas';
+import { MapCanvas, type AreaDetail, type MapMarker, type OverlayPath } from '@/components/MapCanvas';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatNumeral } from '@/components/ui/StatNumeral';
@@ -91,6 +91,22 @@ export function Resilience() {
     });
   }
 
+  // Build map area details so hovering on any node tells the story
+  const areaDetails: AreaDetail[] = areas.map((a) => {
+    const isAP = !!criticalQuery.data?.articulation_areas?.includes(a.id);
+    const bridges = criticalQuery.data?.bridges ?? [];
+    const bridgeCount = bridges.filter((b) => b.u === a.id || b.v === a.id).length;
+    const isolated = closureResult?.isolated_areas?.includes(a.id);
+    const notes: string[] = [];
+    if (isolated) notes.push('Would be isolated by current edge closure');
+    return {
+      areaId: a.id,
+      isArticulation: isAP,
+      bridgeCount,
+      notes,
+    };
+  });
+
   // Build markers for APs and closure
   const markers: MapMarker[] = [];
 
@@ -123,6 +139,37 @@ export function Resilience() {
       byline="Find weak roads and areas in the Pune-inspired network using MST, bridges, articulation points, and edge-closure simulation."
     >
       <div className="space-y-6">
+        {/* Page explainer */}
+        <Card className="rise-1 bg-parchment/60">
+          <CardHeader title="What this page does" />
+          <div className="space-y-2 text-sm text-ink/80 leading-relaxed">
+            <p>
+              The Resilience page is a planning tool that asks a simple question: <em>if a road or junction
+              fails, what breaks?</em> It is not used to dispatch teams — it is used before an incident, to
+              find structural weak points in the road network so you know where to harden infrastructure or
+              pre-position resources.
+            </p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                <strong>MST (Kruskal):</strong> the cheapest set of roads that still connects every area.
+                Roads <em>not</em> in the MST are redundant; roads <em>in</em> it form the network's backbone.
+              </li>
+              <li>
+                <strong>Bridges (Tarjan):</strong> roads whose removal would split the graph. Lose one and a
+                whole region becomes unreachable.
+              </li>
+              <li>
+                <strong>Articulation Points:</strong> areas (junctions) whose removal would split the graph.
+                Same risk, but at a node instead of an edge.
+              </li>
+              <li>
+                <strong>Edge-closure simulator:</strong> click any road on the map to recompute connectivity
+                with that road removed and see exactly which areas would be cut off.
+              </li>
+            </ul>
+          </div>
+        </Card>
+
         {/* Stat Strip */}
         <div className="rise-1 grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatNumeral
@@ -150,6 +197,7 @@ export function Resilience() {
             edges={edges}
             overlays={overlays}
             markers={markers}
+            areaDetails={areaDetails}
             onEdgeClick={handleEdgeClick}
             height={600}
           />
